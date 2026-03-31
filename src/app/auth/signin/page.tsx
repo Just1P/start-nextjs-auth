@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/app/ui/button";
+import { Input } from "@/app/ui/input";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,12 +18,9 @@ export default function SignInPage() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-
     const result = await signIn("credentials", {
-      email,
-      password,
+      email: formData.get("email"),
+      password: formData.get("password"),
       redirect: false,
     });
 
@@ -49,53 +48,16 @@ export default function SignInPage() {
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <label
-              htmlFor="email"
-              className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:ring-zinc-800"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              Mot de passe
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:ring-zinc-800"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-2 rounded-lg bg-zinc-900 px-4 py-2.5 font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
+          <Input id="email" name="email" type="email" label="Email" required />
+          <Input id="password" name="password" type="password" label="Mot de passe" required />
+          <Button type="submit" disabled={loading} className="mt-2 w-full">
             {loading ? "Connexion..." : "Se connecter"}
-          </button>
+          </Button>
         </form>
 
         <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
           Pas encore de compte ?{" "}
-          <Link
-            href="/auth/signup"
-            className="font-medium text-zinc-900 underline dark:text-zinc-50"
-          >
+          <Link href="/auth/signup" className="font-medium text-zinc-900 underline dark:text-zinc-50">
             Créer un compte
           </Link>
         </p>

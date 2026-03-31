@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/app/ui/button";
+import { Input } from "@/app/ui/input";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -63,44 +65,24 @@ export default function Home() {
       return;
     }
 
-    await signIn("credentials", {
-      email,
-      password,
-      callbackUrl: "/dashboard",
-    });
+    await signIn("credentials", { email, password, callbackUrl: "/dashboard" });
   }
 
-  const inputClass =
-    "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:ring-zinc-800";
+  const tabClass = (active: boolean) =>
+    `flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
+      active
+        ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-50"
+        : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+    }`;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
       <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
         <div className="mb-6 flex rounded-lg bg-zinc-100 p-1 dark:bg-zinc-900">
-          <button
-            onClick={() => {
-              setTab("signin");
-              setError("");
-            }}
-            className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
-              tab === "signin"
-                ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-50"
-                : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
-            }`}
-          >
+          <button onClick={() => { setTab("signin"); setError(""); }} className={tabClass(tab === "signin")}>
             Connexion
           </button>
-          <button
-            onClick={() => {
-              setTab("signup");
-              setError("");
-            }}
-            className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
-              tab === "signup"
-                ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-50"
-                : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
-            }`}
-          >
+          <button onClick={() => { setTab("signup"); setError(""); }} className={tabClass(tab === "signup")}>
             Inscription
           </button>
         </div>
@@ -113,102 +95,30 @@ export default function Home() {
 
         {tab === "signin" && (
           <form onSubmit={handleSignIn} className="flex flex-col gap-4">
-            <div>
-              <label
-                htmlFor="signin-email"
-                className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Email
-              </label>
-              <input
-                id="signin-email"
-                name="email"
-                type="email"
-                required
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="signin-password"
-                className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Mot de passe
-              </label>
-              <input
-                id="signin-password"
-                name="password"
-                type="password"
-                required
-                className={inputClass}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-2 rounded-lg bg-zinc-900 px-4 py-2.5 font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-            >
+            <Input id="signin-email" name="email" type="email" label="Email" required />
+            <Input id="signin-password" name="password" type="password" label="Mot de passe" required />
+            <Button type="submit" disabled={loading} className="mt-2 w-full">
               {loading ? "Connexion..." : "Se connecter"}
-            </button>
+            </Button>
           </form>
         )}
 
         {tab === "signup" && (
           <form onSubmit={handleSignUp} className="flex flex-col gap-4">
-            <div>
-              <label
-                htmlFor="signup-name"
-                className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Nom
-              </label>
-              <input
-                id="signup-name"
-                name="name"
-                type="text"
-                required
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="signup-email"
-                className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Email
-              </label>
-              <input
-                id="signup-email"
-                name="email"
-                type="email"
-                required
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="signup-password"
-                className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Mot de passe
-              </label>
-              <input
-                id="signup-password"
-                name="password"
-                type="password"
-                required
-                minLength={6}
-                className={inputClass}
-              />
-              <p className="mt-1 text-xs text-zinc-500">Minimum 6 caractères</p>
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-2 rounded-lg bg-zinc-900 px-4 py-2.5 font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-            >
+            <Input id="signup-name" name="name" type="text" label="Nom" required />
+            <Input id="signup-email" name="email" type="email" label="Email" required />
+            <Input
+              id="signup-password"
+              name="password"
+              type="password"
+              label="Mot de passe"
+              required
+              minLength={6}
+              hint="Minimum 6 caractères"
+            />
+            <Button type="submit" disabled={loading} className="mt-2 w-full">
               {loading ? "Création..." : "Créer un compte"}
-            </button>
+            </Button>
           </form>
         )}
       </div>

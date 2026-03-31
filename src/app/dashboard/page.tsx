@@ -1,6 +1,7 @@
 import { auth, signOut } from "@/auth";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { getPlanKeyFromPriceId } from "@/lib/plans";
+import { redirect } from "next/navigation";
 import { SubscriptionButton } from "./subscription-button";
 
 export default async function DashboardPage() {
@@ -19,21 +20,17 @@ export default async function DashboardPage() {
   const isSubscribed = stripeStatus === "active" || stripeStatus === "trialing";
   const isCanceling = stripeStatus === "cancel_at_period_end";
 
-  const maxMonthlyId = process.env.STRIPE_MAX_MONTHLYPRICE_ID;
-  const maxYearlyId = process.env.STRIPE_MAX_YEARLYPRICE_ID;
-  const premiumYearlyId = process.env.STRIPE_PREMIUM_YEARLYPRICE_ID;
+  const planKey = getPlanKeyFromPriceId(user?.stripePriceId ?? "");
+  const [currentTier, currentBilling] = planKey ? planKey.split("-") : [null, null];
 
-  const priceId = user?.stripePriceId ?? "";
-  const isMaxPlan = priceId === maxMonthlyId || priceId === maxYearlyId;
-
-  const currentPlan: "premium" | "max" | null =
-    isSubscribed || isCanceling ? (isMaxPlan ? "max" : "premium") : null;
-
-  const currentBilling: "monthly" | "yearly" | null =
+  const currentPlan =
     isSubscribed || isCanceling
-      ? priceId === maxYearlyId || priceId === premiumYearlyId
-        ? "yearly"
-        : "monthly"
+      ? (currentTier as "premium" | "max" | null)
+      : null;
+
+  const currentBillingCycle =
+    isSubscribed || isCanceling
+      ? (currentBilling as "monthly" | "yearly" | null)
       : null;
 
   return (
@@ -80,7 +77,7 @@ export default async function DashboardPage() {
           isSubscribed={isSubscribed}
           isCanceling={isCanceling}
           currentPlan={currentPlan}
-          currentBilling={currentBilling}
+          currentBilling={currentBillingCycle}
         />
       </main>
     </div>

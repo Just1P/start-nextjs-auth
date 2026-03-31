@@ -1,24 +1,18 @@
 "use client";
 
+import { Button } from "@/app/ui/button";
+import { PLAN_PRICES, PLANS, type Billing, type Tier } from "@/lib/plans";
 import confetti from "canvas-confetti";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
-
-const PLANS = {
-  premium: { name: "Premium", monthly: "12,99 €", yearly: "129,99 €" },
-  max: { name: "Max", monthly: "24,99 €", yearly: "224,91 €" },
-};
 
 export default function SubscriptionSuccessPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const iconRef = useRef<HTMLDivElement>(null);
 
-  const plan = (searchParams.get("plan") ?? "premium") as "premium" | "max";
-  const billing = (searchParams.get("billing") ?? "monthly") as
-    | "monthly"
-    | "yearly";
+  const plan = (searchParams.get("plan") ?? "premium") as Tier;
+  const billing = (searchParams.get("billing") ?? "monthly") as Billing;
   const isUpgrade = searchParams.get("upgrade") === "true";
   const prorataAmountCents = searchParams.get("prorataAmount");
   const prorataAmount = prorataAmountCents
@@ -26,8 +20,9 @@ export default function SubscriptionSuccessPage() {
     : null;
 
   const planData = PLANS[plan] ?? PLANS.premium;
-  const price = billing === "yearly" ? planData.yearly : planData.monthly;
+  const price = PLAN_PRICES[plan][billing];
   const billingLabel = billing === "yearly" ? "an" : "mois";
+
 
   useEffect(() => {
     if (!iconRef.current) return;
@@ -124,12 +119,9 @@ export default function SubscriptionSuccessPage() {
           )}
         </div>
 
-        <Link
-          href="/dashboard"
-          className="block w-full rounded-lg bg-zinc-900 px-4 py-2.5 text-center font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
+        <Button className="w-full" onClick={() => router.push("/dashboard")}>
           Accéder au dashboard
-        </Link>
+        </Button>
       </div>
     </div>
   );
