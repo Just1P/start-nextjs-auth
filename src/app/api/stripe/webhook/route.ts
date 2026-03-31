@@ -28,8 +28,18 @@ export async function POST(req: NextRequest) {
           session.metadata;
         const updated = await stripe.subscriptions.update(subscriptionId, {
           items: [{ id: subscriptionItemId, price: newPriceId }],
-          proration_behavior: "none",
+          proration_behavior: "create_prorations",
+          proration_date: Number(session.metadata.prorationDate),
         });
+
+        const pendingItems = await stripe.invoiceItems.list({
+          customer: session.customer as string,
+          pending: true,
+        });
+        await Promise.all(
+          pendingItems.data.map((item) => stripe.invoiceItems.del(item.id)),
+        );
+
         await prisma.user.update({
           where: { id: userId },
           data: {

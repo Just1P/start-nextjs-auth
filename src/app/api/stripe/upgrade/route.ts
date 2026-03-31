@@ -70,7 +70,8 @@ export async function POST(request: NextRequest) {
     if (p.type === "subscription_item_details") {
       return (
         p.subscription_item_details?.proration === true &&
-        p.subscription_item_details?.subscription_item === subscriptionItem.id
+        p.subscription_item_details?.subscription_item === subscriptionItem.id &&
+        l.period?.start === prorationDate
       );
     }
     return false;
@@ -79,7 +80,8 @@ export async function POST(request: NextRequest) {
   const prorationLines = preview.lines.data.filter(
     isCurrentSubscriptionProration,
   );
-  const creditAmount = prorationLines
+
+const creditAmount = prorationLines
     .filter((l) => (l.amount ?? 0) < 0)
     .reduce((sum, l) => sum + Math.abs(l.amount ?? 0), 0);
   const prorationDebit = prorationLines

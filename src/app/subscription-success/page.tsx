@@ -35,7 +35,14 @@ export default function SubscriptionSuccessPage() {
       angle: 120,
       spread: 55,
       origin: { x, y },
-      colors: ["#18181b", "#52525b", "#a1a1aa", "#e4e4e7", "#ffffff"],
+      colors: [
+        "#ff6b6b",
+        "#ffd93d",
+        "#6bcb77",
+        "#4d96ff",
+        "#ff6bff",
+        "#ffb347",
+      ],
     });
 
     confetti({
@@ -43,7 +50,14 @@ export default function SubscriptionSuccessPage() {
       angle: 60,
       spread: 55,
       origin: { x, y },
-      colors: ["#18181b", "#52525b", "#a1a1aa", "#e4e4e7", "#ffffff"],
+      colors: [
+        "#ff6b6b",
+        "#ffd93d",
+        "#6bcb77",
+        "#4d96ff",
+        "#ff6bff",
+        "#ffb347",
+      ],
     });
   }, []);
 
