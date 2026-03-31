@@ -1,60 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
+import { PLAN_LABELS, PRICE_MAP, getPlanKeyFromPriceId, type Billing, type PlanKey, type Tier } from "@/lib/plans";
 import { stripe } from "@/lib/stripe";
-
-const PRICE_MAP: Record<string, string> = {
-  "premium-monthly": process.env.STRIPE_PREMIUM_MONTHLYPRICE_ID!,
-  "premium-yearly": process.env.STRIPE_PREMIUM_YEARLYPRICE_ID!,
-  "max-monthly": process.env.STRIPE_MAX_MONTHLYPRICE_ID!,
-  "max-yearly": process.env.STRIPE_MAX_YEARLYPRICE_ID!,
-};
-
-const PLAN_LABELS: Record<string, string> = {
-  "premium-monthly": "Premium mensuel",
-  "premium-yearly": "Premium annuel",
-  "max-monthly": "Max mensuel",
-  "max-yearly": "Max annuel",
-};
+import { getAuthenticatedUser } from "@/lib/stripe-auth";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const targetTier = searchParams.get("tier") as "premium" | "max" | null;
-  const targetBilling = searchParams.get("billing") as
-    | "monthly"
-    | "yearly"
-    | null;
+  const targetTier = searchParams.get("tier") as Tier | null;
+  const targetBilling = searchParams.get("billing") as Billing | null;
 
   if (!targetTier || !targetBilling) {
-    return NextResponse.json(
-      { error: "Paramètres manquants" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Paramètres manquants" }, { status: 400 });
   }
 
-  const targetKey = `${targetTier}-${targetBilling}`;
+  const targetKey: PlanKey = `${targetTier}-${targetBilling}`;
   const newPriceId = PRICE_MAP[targetKey];
   if (!newPriceId) {
     return NextResponse.json({ error: "Plan invalide" }, { status: 400 });
   }
 
-  const session = await auth();
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-  }
+  const { user, error } = await getAuthenticatedUser();
+  if (error) return error;
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-
-  const currentPriceId = user?.stripePriceId;
-  const currentKey = Object.entries(PRICE_MAP).find(
-    ([, v]) => v === currentPriceId,
-  )?.[0];
-  const currentBillingCycle = currentKey?.split("-")[1] as
-    | "monthly"
-    | "yearly"
-    | undefined;
+  const currentKey = getPlanKeyFromPriceId(user.stripePriceId ?? "");
+  const currentBillingCycle = currentKey?.split("-")[1] as Billing | undefined;
   if (currentBillingCycle === "yearly" && targetBilling === "monthly") {
     return NextResponse.json(
       { error: "Impossible de passer d'annuel à mensuel" },
@@ -62,16 +30,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!user?.stripeSubscriptionId) {
+  if (!user.stripeSubscriptionId) {
     return NextResponse.json(
       { error: "Aucun abonnement actif trouvé" },
       { status: 404 },
     );
   }
 
-  const subscription = await stripe.subscriptions.retrieve(
-    user.stripeSubscriptionId,
-  );
+  const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
   const subscriptionItem = subscription.items.data[0];
   const prorationDate = Math.floor(Date.now() / 1000);
 
@@ -84,17 +50,21 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  const isProration = (l: (typeof preview.lines.data)[number]) => {
+  // Ne garder que les lignes de prorata liées à l'item de l'abonnement actuel
+  // pour éviter les lignes parasites d'anciens invoice items en attente
+  const isCurrentSubscriptionProration = (l: (typeof preview.lines.data)[number]) => {
     const p = l.parent;
     if (!p) return false;
-    if (p.type === "invoice_item_details")
-      return p.invoice_item_details?.proration ?? false;
-    if (p.type === "subscription_item_details")
-      return p.subscription_item_details?.proration ?? false;
+    if (p.type === "subscription_item_details") {
+      return (
+        p.subscription_item_details?.proration === true &&
+        p.subscription_item_details?.subscription_item === subscriptionItem.id
+      );
+    }
     return false;
   };
 
-  const prorationLines = preview.lines.data.filter(isProration);
+  const prorationLines = preview.lines.data.filter(isCurrentSubscriptionProration);
   const creditAmount = prorationLines
     .filter((l) => (l.amount ?? 0) < 0)
     .reduce((sum, l) => sum + Math.abs(l.amount ?? 0), 0);

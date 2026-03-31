@@ -1,21 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { stripe } from "@/lib/stripe";
+import { getAuthenticatedUser } from "@/lib/stripe-auth";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   const { subscriptionItemId, newPriceId, prorationDate } = await request.json();
 
-  const session = await auth();
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-  }
+  const { user, error } = await getAuthenticatedUser();
+  if (error) return error;
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-
-  if (!user?.stripeSubscriptionId) {
+  if (!user.stripeSubscriptionId) {
     return NextResponse.json({ error: "Aucun abonnement actif" }, { status: 404 });
   }
 

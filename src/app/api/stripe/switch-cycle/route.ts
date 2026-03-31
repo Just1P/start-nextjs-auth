@@ -1,29 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
+import { getPriceId } from "@/lib/plans";
 import { stripe } from "@/lib/stripe";
+import { getAuthenticatedUser } from "@/lib/stripe-auth";
+import { NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+export async function POST() {
+  const { user, error } = await getAuthenticatedUser();
+  if (error) return error;
+
+  if (!user.stripeSubscriptionId || !user.stripeCustomerId) {
+    return NextResponse.json({ error: "Aucun abonnement actif" }, { status: 404 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-
-  if (!user?.stripeSubscriptionId) {
-    return NextResponse.json(
-      { error: "Aucun abonnement actif" },
-      { status: 404 },
-    );
-  }
-
-  const newPriceId = process.env.STRIPE_MAX_YEARLYPRICE_ID!;
+  const newPriceId = getPriceId("max", "yearly");
 
   const checkoutSession = await stripe.checkout.sessions.create({
-    customer: user.stripeCustomerId!,
+    customer: user.stripeCustomerId,
     mode: "subscription",
     payment_method_types: ["card"],
     line_items: [{ price: newPriceId, quantity: 1 }],

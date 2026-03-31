@@ -29,12 +29,12 @@ export async function POST(req: NextRequest) {
         const updated = await stripe.subscriptions.update(subscriptionId, {
           items: [{ id: subscriptionItemId, price: newPriceId }],
           proration_behavior: "none",
-          billing_cycle_anchor: "now",
         });
         await prisma.user.update({
           where: { id: userId },
           data: {
             stripePriceId: newPriceId,
+            stripeSubscriptionId: updated.id,
             stripeStatus: updated.status,
           },
         });
@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
       await prisma.user.update({
         where: { stripeCustomerId: subscription.customer as string },
         data: {
+          stripeSubscriptionId: subscription.id,
           stripeStatus: status,
           stripePriceId: subscription.items.data[0]?.price.id ?? null,
         },
