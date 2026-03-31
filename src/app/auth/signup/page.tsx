@@ -31,7 +31,6 @@ export default function SignUpPage() {
       return;
     }
 
-    // Auto sign-in after registration
     await signIn("credentials", {
       email,
       password,

@@ -14,13 +14,14 @@ export async function POST(request: NextRequest) {
   });
 
   if (!user?.stripeSubscriptionId) {
-    return NextResponse.json({ error: "Aucun abonnement actif" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Aucun abonnement actif" },
+      { status: 404 },
+    );
   }
 
   const newPriceId = process.env.STRIPE_MAX_YEARLYPRICE_ID!;
 
-  // Checkout Session — l'utilisateur paye le prix annuel sur Stripe
-  // L'ancien abonnement mensuel sera annulé dans le webhook via upgradeFrom
   const checkoutSession = await stripe.checkout.sessions.create({
     customer: user.stripeCustomerId!,
     mode: "subscription",

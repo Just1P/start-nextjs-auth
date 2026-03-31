@@ -76,10 +76,12 @@ export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
       <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        {/* Tabs */}
         <div className="mb-6 flex rounded-lg bg-zinc-100 p-1 dark:bg-zinc-900">
           <button
-            onClick={() => { setTab("signin"); setError(""); }}
+            onClick={() => {
+              setTab("signin");
+              setError("");
+            }}
             className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
               tab === "signin"
                 ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-50"
@@ -89,7 +91,10 @@ export default function Home() {
             Connexion
           </button>
           <button
-            onClick={() => { setTab("signup"); setError(""); }}
+            onClick={() => {
+              setTab("signup");
+              setError("");
+            }}
             className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
               tab === "signup"
                 ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-50"
@@ -106,20 +111,37 @@ export default function Home() {
           </div>
         )}
 
-        {/* Sign In */}
         {tab === "signin" && (
           <form onSubmit={handleSignIn} className="flex flex-col gap-4">
             <div>
-              <label htmlFor="signin-email" className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label
+                htmlFor="signin-email"
+                className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
                 Email
               </label>
-              <input id="signin-email" name="email" type="email" required className={inputClass} />
+              <input
+                id="signin-email"
+                name="email"
+                type="email"
+                required
+                className={inputClass}
+              />
             </div>
             <div>
-              <label htmlFor="signin-password" className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label
+                htmlFor="signin-password"
+                className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
                 Mot de passe
               </label>
-              <input id="signin-password" name="password" type="password" required className={inputClass} />
+              <input
+                id="signin-password"
+                name="password"
+                type="password"
+                required
+                className={inputClass}
+              />
             </div>
             <button
               type="submit"
@@ -131,26 +153,53 @@ export default function Home() {
           </form>
         )}
 
-        {/* Sign Up */}
         {tab === "signup" && (
           <form onSubmit={handleSignUp} className="flex flex-col gap-4">
             <div>
-              <label htmlFor="signup-name" className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label
+                htmlFor="signup-name"
+                className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
                 Nom
               </label>
-              <input id="signup-name" name="name" type="text" required className={inputClass} />
+              <input
+                id="signup-name"
+                name="name"
+                type="text"
+                required
+                className={inputClass}
+              />
             </div>
             <div>
-              <label htmlFor="signup-email" className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label
+                htmlFor="signup-email"
+                className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
                 Email
               </label>
-              <input id="signup-email" name="email" type="email" required className={inputClass} />
+              <input
+                id="signup-email"
+                name="email"
+                type="email"
+                required
+                className={inputClass}
+              />
             </div>
             <div>
-              <label htmlFor="signup-password" className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <label
+                htmlFor="signup-password"
+                className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >
                 Mot de passe
               </label>
-              <input id="signup-password" name="password" type="password" required minLength={6} className={inputClass} />
+              <input
+                id="signup-password"
+                name="password"
+                type="password"
+                required
+                minLength={6}
+                className={inputClass}
+              />
               <p className="mt-1 text-xs text-zinc-500">Minimum 6 caractères</p>
             </div>
             <button

@@ -20,6 +20,10 @@ export default function SubscriptionSuccessPage() {
     | "monthly"
     | "yearly";
   const isUpgrade = searchParams.get("upgrade") === "true";
+  const prorataAmountCents = searchParams.get("prorataAmount");
+  const prorataAmount = prorataAmountCents
+    ? (Number(prorataAmountCents) / 100).toFixed(2).replace(".", ",") + " €"
+    : null;
 
   const planData = PLANS[plan] ?? PLANS.premium;
   const price = billing === "yearly" ? planData.yearly : planData.monthly;
@@ -32,7 +36,6 @@ export default function SubscriptionSuccessPage() {
     const x = (rect.left + rect.width / 2) / window.innerWidth;
     const y = (rect.top + rect.height / 2) / window.innerHeight;
 
-    // Tir gauche
     confetti({
       particleCount: 80,
       angle: 120,
@@ -41,7 +44,6 @@ export default function SubscriptionSuccessPage() {
       colors: ["#18181b", "#52525b", "#a1a1aa", "#e4e4e7", "#ffffff"],
     });
 
-    // Tir droit
     confetti({
       particleCount: 80,
       angle: 60,
@@ -54,7 +56,6 @@ export default function SubscriptionSuccessPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
       <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        {/* Icône confetti */}
         <div className="mb-6 flex justify-center">
           <div
             ref={iconRef}
@@ -64,7 +65,6 @@ export default function SubscriptionSuccessPage() {
           </div>
         </div>
 
-        {/* Message */}
         <div className="mb-8 text-center">
           <h1 className="mb-2 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
             {isUpgrade ? "Upgrade confirmé !" : "Abonnement activé !"}
@@ -76,7 +76,6 @@ export default function SubscriptionSuccessPage() {
           </p>
         </div>
 
-        {/* Récap abonnement */}
         <div className="mb-8 divide-y divide-zinc-100 rounded-xl border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
           <div className="flex items-center justify-between px-4 py-3">
             <span className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -94,14 +93,35 @@ export default function SubscriptionSuccessPage() {
               {billing === "yearly" ? "Annuelle" : "Mensuelle"}
             </span>
           </div>
-          <div className="flex items-center justify-between px-4 py-3">
-            <span className="text-sm text-zinc-500 dark:text-zinc-400">
-              Montant
-            </span>
-            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
-              {price} / {billingLabel}
-            </span>
-          </div>
+          {isUpgrade && prorataAmount ? (
+            <>
+              <div className="flex items-center justify-between px-4 py-3">
+                <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Débité maintenant
+                </span>
+                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                  {prorataAmount}
+                </span>
+              </div>
+              <div className="flex items-center justify-between px-4 py-3">
+                <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Prochain renouvellement
+                </span>
+                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                  {price} / {billingLabel}
+                </span>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-between px-4 py-3">
+              <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                Montant
+              </span>
+              <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                {price} / {billingLabel}
+              </span>
+            </div>
+          )}
         </div>
 
         <Link

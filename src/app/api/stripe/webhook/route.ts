@@ -22,12 +22,30 @@ export async function POST(req: NextRequest) {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
+
+      if (session.metadata?.type === "upgrade") {
+        const { subscriptionId, subscriptionItemId, newPriceId, userId } =
+          session.metadata;
+        const updated = await stripe.subscriptions.update(subscriptionId, {
+          items: [{ id: subscriptionItemId, price: newPriceId }],
+          proration_behavior: "none",
+          billing_cycle_anchor: "now",
+        });
+        await prisma.user.update({
+          where: { id: userId },
+          data: {
+            stripePriceId: newPriceId,
+            stripeStatus: updated.status,
+          },
+        });
+        break;
+      }
+
       if (session.subscription && session.customer) {
         const subscription = await stripe.subscriptions.retrieve(
           session.subscription as string,
         );
 
-        // Si c'est un upgrade, annuler immédiatement l'ancien abonnement
         const upgradeFrom = session.metadata?.upgradeFrom;
         if (upgradeFrom && upgradeFrom !== subscription.id) {
           await stripe.subscriptions.cancel(upgradeFrom);
