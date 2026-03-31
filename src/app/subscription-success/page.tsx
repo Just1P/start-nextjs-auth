@@ -23,7 +23,6 @@ export default function SubscriptionSuccessPage() {
   const price = PLAN_PRICES[plan][billing];
   const billingLabel = billing === "yearly" ? "an" : "mois";
 
-
   useEffect(() => {
     if (!iconRef.current) return;
 

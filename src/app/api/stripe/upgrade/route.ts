@@ -1,4 +1,11 @@
-import { PLAN_LABELS, PRICE_MAP, getPlanKeyFromPriceId, type Billing, type PlanKey, type Tier } from "@/lib/plans";
+import {
+  PLAN_LABELS,
+  PRICE_MAP,
+  getPlanKeyFromPriceId,
+  type Billing,
+  type PlanKey,
+  type Tier,
+} from "@/lib/plans";
 import { stripe } from "@/lib/stripe";
 import { getAuthenticatedUser } from "@/lib/stripe-auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -9,7 +16,10 @@ export async function POST(request: NextRequest) {
   const targetBilling = searchParams.get("billing") as Billing | null;
 
   if (!targetTier || !targetBilling) {
-    return NextResponse.json({ error: "Paramètres manquants" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Paramètres manquants" },
+      { status: 400 },
+    );
   }
 
   const targetKey: PlanKey = `${targetTier}-${targetBilling}`;
@@ -37,7 +47,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+  const subscription = await stripe.subscriptions.retrieve(
+    user.stripeSubscriptionId,
+  );
   const subscriptionItem = subscription.items.data[0];
   const prorationDate = Math.floor(Date.now() / 1000);
 
@@ -50,9 +62,9 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  // Ne garder que les lignes de prorata liées à l'item de l'abonnement actuel
-  // pour éviter les lignes parasites d'anciens invoice items en attente
-  const isCurrentSubscriptionProration = (l: (typeof preview.lines.data)[number]) => {
+  const isCurrentSubscriptionProration = (
+    l: (typeof preview.lines.data)[number],
+  ) => {
     const p = l.parent;
     if (!p) return false;
     if (p.type === "subscription_item_details") {
@@ -64,7 +76,9 @@ export async function POST(request: NextRequest) {
     return false;
   };
 
-  const prorationLines = preview.lines.data.filter(isCurrentSubscriptionProration);
+  const prorationLines = preview.lines.data.filter(
+    isCurrentSubscriptionProration,
+  );
   const creditAmount = prorationLines
     .filter((l) => (l.amount ?? 0) < 0)
     .reduce((sum, l) => sum + Math.abs(l.amount ?? 0), 0);
